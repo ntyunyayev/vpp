@@ -29,14 +29,15 @@ typedef struct
 #ifndef CLIB_MARCH_VARIANT
 
 /* packet trace format function */
-static u8 * format_kvs_trace (u8 * s, va_list * args)
+static u8 *
+format_kvs_trace (u8 *s, va_list *args)
 {
   CLIB_UNUSED (vlib_main_t * vm) = va_arg (*args, vlib_main_t *);
   CLIB_UNUSED (vlib_node_t * node) = va_arg (*args, vlib_node_t *);
-  kvs_trace_t * t = va_arg (*args, kvs_trace_t *);
-  
-  s = format (s, "KVS: sw_if_index %d, next index %d\n",
-              t->sw_if_index, t->next_index);
+  kvs_trace_t *t = va_arg (*args, kvs_trace_t *);
+
+  s = format (s, "KVS: sw_if_index %d, next index %d\n", t->sw_if_index,
+	      t->next_index);
   return s;
 }
 
@@ -44,36 +45,33 @@ vlib_node_registration_t kvs_node;
 
 #endif /* CLIB_MARCH_VARIANT */
 
-#define foreach_kvs_error \
-_(SWAPPED, "Mac swap packets processed")
+#define foreach_kvs_error _ (SWAPPED, "Mac swap packets processed")
 
-typedef enum 
+typedef enum
 {
-#define _(sym,str) KVS_ERROR_##sym,
+#define _(sym, str) KVS_ERROR_##sym,
   foreach_kvs_error
 #undef _
-  KVS_N_ERROR,
+    KVS_N_ERROR,
 } kvs_error_t;
 
 #ifndef CLIB_MARCH_VARIANT
-static char * kvs_error_strings[] = 
-{
-#define _(sym,string) string,
+static char *kvs_error_strings[] = {
+#define _(sym, string) string,
   foreach_kvs_error
 #undef _
 };
 #endif /* CLIB_MARCH_VARIANT */
 
-typedef enum 
+typedef enum
 {
   KVS_NEXT_DROP,
   KVS_N_NEXT,
 } kvs_next_t;
 
 always_inline uword
-kvs_inline (vlib_main_t * vm,
-     		 vlib_node_runtime_t * node, vlib_frame_t * frame,
-		 int is_ip4, int is_trace)
+kvs_inline (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
+	    int is_ip4, int is_trace)
 {
   u32 n_left_from, *from;
   vlib_buffer_t *bufs[VLIB_FRAME_SIZE], **b;
@@ -95,13 +93,13 @@ kvs_inline (vlib_main_t * vm,
 	  vlib_prefetch_buffer_header (b[5], STORE);
 	  vlib_prefetch_buffer_header (b[6], STORE);
 	  vlib_prefetch_buffer_header (b[7], STORE);
-          CLIB_PREFETCH (b[4]->data, CLIB_CACHE_LINE_BYTES, STORE);
-          CLIB_PREFETCH (b[5]->data, CLIB_CACHE_LINE_BYTES, STORE);
-          CLIB_PREFETCH (b[6]->data, CLIB_CACHE_LINE_BYTES, STORE);
-          CLIB_PREFETCH (b[7]->data, CLIB_CACHE_LINE_BYTES, STORE);
+	  CLIB_PREFETCH (b[4]->data, CLIB_CACHE_LINE_BYTES, STORE);
+	  CLIB_PREFETCH (b[5]->data, CLIB_CACHE_LINE_BYTES, STORE);
+	  CLIB_PREFETCH (b[6]->data, CLIB_CACHE_LINE_BYTES, STORE);
+	  CLIB_PREFETCH (b[7]->data, CLIB_CACHE_LINE_BYTES, STORE);
 	}
 
-     /* $$$$ process 4x pkts right here */
+      /* $$$$ process 4x pkts right here */
       next[0] = 0;
       next[1] = 0;
       next[2] = 0;
@@ -111,31 +109,27 @@ kvs_inline (vlib_main_t * vm,
 	{
 	  if (b[0]->flags & VLIB_BUFFER_IS_TRACED)
 	    {
-	      kvs_trace_t *t = 
-                   vlib_add_trace (vm, node, b[0], sizeof (*t));
+	      kvs_trace_t *t = vlib_add_trace (vm, node, b[0], sizeof (*t));
 	      t->next_index = next[0];
-              t->sw_if_index = vnet_buffer(b[0])->sw_if_index[VLIB_RX];
+	      t->sw_if_index = vnet_buffer (b[0])->sw_if_index[VLIB_RX];
 	    }
 	  if (b[1]->flags & VLIB_BUFFER_IS_TRACED)
 	    {
-	      kvs_trace_t *t = 
-                    vlib_add_trace (vm, node, b[1], sizeof (*t));
+	      kvs_trace_t *t = vlib_add_trace (vm, node, b[1], sizeof (*t));
 	      t->next_index = next[1];
-              t->sw_if_index = vnet_buffer(b[1])->sw_if_index[VLIB_RX];
+	      t->sw_if_index = vnet_buffer (b[1])->sw_if_index[VLIB_RX];
 	    }
 	  if (b[2]->flags & VLIB_BUFFER_IS_TRACED)
 	    {
-	      kvs_trace_t *t = 
-                    vlib_add_trace (vm, node, b[2], sizeof (*t));
+	      kvs_trace_t *t = vlib_add_trace (vm, node, b[2], sizeof (*t));
 	      t->next_index = next[2];
-              t->sw_if_index = vnet_buffer(b[2])->sw_if_index[VLIB_RX];
+	      t->sw_if_index = vnet_buffer (b[2])->sw_if_index[VLIB_RX];
 	    }
 	  if (b[3]->flags & VLIB_BUFFER_IS_TRACED)
 	    {
-	      kvs_trace_t *t = 
-                    vlib_add_trace (vm, node, b[3], sizeof (*t));
+	      kvs_trace_t *t = vlib_add_trace (vm, node, b[3], sizeof (*t));
 	      t->next_index = next[3];
-              t->sw_if_index = vnet_buffer(b[3])->sw_if_index[VLIB_RX];
+	      t->sw_if_index = vnet_buffer (b[3])->sw_if_index[VLIB_RX];
 	    }
 	}
 
@@ -147,17 +141,16 @@ kvs_inline (vlib_main_t * vm,
   while (n_left_from > 0)
     {
 
-     /* $$$$ process 1 pkt right here */
+      /* $$$$ process 1 pkt right here */
       next[0] = 0;
 
       if (is_trace)
 	{
 	  if (b[0]->flags & VLIB_BUFFER_IS_TRACED)
 	    {
-	      kvs_trace_t *t = 
-                    vlib_add_trace (vm, node, b[0], sizeof (*t));
+	      kvs_trace_t *t = vlib_add_trace (vm, node, b[0], sizeof (*t));
 	      t->next_index = next[0];
-              t->sw_if_index = vnet_buffer(b[0])->sw_if_index[VLIB_RX];
+	      t->sw_if_index = vnet_buffer (b[0])->sw_if_index[VLIB_RX];
 	    }
 	}
 
@@ -171,20 +164,17 @@ kvs_inline (vlib_main_t * vm,
   return frame->n_vectors;
 }
 
-VLIB_NODE_FN (kvs_node) (vlib_main_t * vm, vlib_node_runtime_t * node,
-                             vlib_frame_t * frame)
+VLIB_NODE_FN (kvs_node)
+(vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame)
 {
   if (PREDICT_FALSE (node->flags & VLIB_NODE_FLAG_TRACE))
-    return kvs_inline (vm, node, frame, 1 /* is_ip4 */ ,
-			    1 /* is_trace */ );
+    return kvs_inline (vm, node, frame, 1 /* is_ip4 */, 1 /* is_trace */);
   else
-    return kvs_inline (vm, node, frame, 1 /* is_ip4 */ ,
-			    0 /* is_trace */ );
+    return kvs_inline (vm, node, frame, 1 /* is_ip4 */, 0 /* is_trace */);
 }
 
-/* *INDENT-OFF* */
 #ifndef CLIB_MARCH_VARIANT
-VLIB_REGISTER_NODE (kvs_node) = 
+VLIB_REGISTER_NODE (kvs_node) =
 {
   .name = "kvs",
   .vector_size = sizeof (u32),
@@ -202,7 +192,7 @@ VLIB_REGISTER_NODE (kvs_node) =
   },
 };
 #endif /* CLIB_MARCH_VARIANT */
-/* *INDENT-ON* */
+
 /*
  * fd.io coding-style-patch-verification: ON
  *

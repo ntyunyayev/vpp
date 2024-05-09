@@ -34,9 +34,9 @@ handle_event2 (kvs_main_t *pm, f64 now, uword event_data)
 static void
 handle_periodic_enable_disable (kvs_main_t *pm, f64 now, uword event_data)
 {
-   clib_warning ("Periodic timeouts now %s",
-     event_data ? "enabled" : "disabled");
-   pm->periodic_timer_enabled = event_data;
+  clib_warning ("Periodic timeouts now %s",
+		event_data ? "enabled" : "disabled");
+  pm->periodic_timer_enabled = event_data;
 }
 
 static void
@@ -46,8 +46,8 @@ handle_timeout (kvs_main_t *pm, f64 now)
 }
 
 static uword
-kvs_periodic_process (vlib_main_t * vm,
-	                  vlib_node_runtime_t * rt, vlib_frame_t * f)
+kvs_periodic_process (vlib_main_t *vm, vlib_node_runtime_t *rt,
+		      vlib_frame_t *f)
 {
   kvs_main_t *pm = &kvs_main;
   f64 now;
@@ -59,13 +59,13 @@ kvs_periodic_process (vlib_main_t * vm,
   while (1)
     {
       if (pm->periodic_timer_enabled)
-        vlib_process_wait_for_event_or_clock (vm, timeout);
+	vlib_process_wait_for_event_or_clock (vm, timeout);
       else
-        vlib_process_wait_for_event (vm);
+	vlib_process_wait_for_event (vm);
 
       now = vlib_time_now (vm);
 
-      event_type = vlib_process_get_events (vm, (uword **) & event_data);
+      event_type = vlib_process_get_events (vm, (uword **) &event_data);
 
       switch (event_type)
 	{
@@ -80,32 +80,33 @@ kvs_periodic_process (vlib_main_t * vm,
 	  for (i = 0; i < vec_len (event_data); i++)
 	    handle_event2 (pm, now, event_data[i]);
 	  break;
-          /* Handle the periodic timer on/off event */
+	  /* Handle the periodic timer on/off event */
 	case KVS_EVENT_PERIODIC_ENABLE_DISABLE:
 	  for (i = 0; i < vec_len (event_data); i++)
 	    handle_periodic_enable_disable (pm, now, event_data[i]);
 	  break;
 
-          /* Handle periodic timeouts */
+	  /* Handle periodic timeouts */
 	case ~0:
 	  handle_timeout (pm, now);
 	  break;
 	}
       vec_reset_length (event_data);
     }
-  return 0;			/* or not */
+  return 0; /* or not */
 }
 
-void kvs_create_periodic_process (kvs_main_t *kmp)
+void
+kvs_create_periodic_process (kvs_main_t *kmp)
 {
   /* Already created the process node? */
   if (kmp->periodic_node_index > 0)
     return;
 
   /* No, create it now and make a note of the node index */
-  kmp->periodic_node_index = vlib_process_create (kmp->vlib_main,
-    "kvs-periodic-process",
-    kvs_periodic_process, 16 /* log2_n_stack_bytes */);
+  kmp->periodic_node_index =
+    vlib_process_create (kmp->vlib_main, "kvs-periodic-process",
+			 kvs_periodic_process, 16 /* log2_n_stack_bytes */);
 }
 
 /*

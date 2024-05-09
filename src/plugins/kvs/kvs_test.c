@@ -38,12 +38,13 @@ typedef struct
 
 kvs_test_main_t kvs_test_main;
 
-static int api_kvs_enable_disable (vat_main_t * vam)
+static int
+api_kvs_enable_disable (vat_main_t *vam)
 {
   unformat_input_t * i = vam->input;
   int enable_disable = 1;
   u32 sw_if_index = ~0;
-  vl_api_kvs_enable_disable_t * mp;
+  vl_api_kvs_enable_disable_t *mp;
   int ret;
 
   /* Parse args required to build the message */
