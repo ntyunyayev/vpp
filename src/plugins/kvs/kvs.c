@@ -1,5 +1,5 @@
 /*
- * KVS.c - skeleton vpp engine plug-in
+ * kvs.c - skeleton vpp engine plug-in
  *
  * Copyright (c) <current-year> <your-organization>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,58 +17,58 @@
 
 #include <vnet/vnet.h>
 #include <vnet/plugin/plugin.h>
-#include <KVS/KVS.h>
+#include <kvs/kvs.h>
 
 #include <vlibapi/api.h>
 #include <vlibmemory/api.h>
 #include <vpp/app/version.h>
 #include <stdbool.h>
 
-#include <KVS/KVS.api_enum.h>
-#include <KVS/KVS.api_types.h>
+#include <kvs/kvs.api_enum.h>
+#include <kvs/kvs.api_types.h>
 
-#define REPLY_MSG_ID_BASE Kmp->msg_id_base
+#define REPLY_MSG_ID_BASE kmp->msg_id_base
 #include <vlibapi/api_helper_macros.h>
 
-KVS_main_t KVS_main;
+kvs_main_t kvs_main;
 
 /* Action function shared between message handler and debug CLI */
 
-int KVS_enable_disable (KVS_main_t * Kmp, u32 sw_if_index,
+int kvs_enable_disable (kvs_main_t * kmp, u32 sw_if_index,
                                    int enable_disable)
 {
   vnet_sw_interface_t * sw;
   int rv = 0;
 
   /* Utterly wrong? */
-  if (pool_is_free_index (Kmp->vnet_main->interface_main.sw_interfaces,
+  if (pool_is_free_index (kmp->vnet_main->interface_main.sw_interfaces,
                           sw_if_index))
     return VNET_API_ERROR_INVALID_SW_IF_INDEX;
 
   /* Not a physical port? */
-  sw = vnet_get_sw_interface (Kmp->vnet_main, sw_if_index);
+  sw = vnet_get_sw_interface (kmp->vnet_main, sw_if_index);
   if (sw->type != VNET_SW_INTERFACE_TYPE_HARDWARE)
     return VNET_API_ERROR_INVALID_SW_IF_INDEX;
 
-  KVS_create_periodic_process (Kmp);
+  kvs_create_periodic_process (kmp);
 
-  vnet_feature_enable_disable ("device-input", "KVS",
+  vnet_feature_enable_disable ("device-input", "kvs",
                                sw_if_index, enable_disable, 0, 0);
 
   /* Send an event to enable/disable the periodic scanner process */
-  vlib_process_signal_event (Kmp->vlib_main,
-                             Kmp->periodic_node_index,
+  vlib_process_signal_event (kmp->vlib_main,
+                             kmp->periodic_node_index,
                              KVS_EVENT_PERIODIC_ENABLE_DISABLE,
                             (uword)enable_disable);
   return rv;
 }
 
 static clib_error_t *
-KVS_enable_disable_command_fn (vlib_main_t * vm,
+kvs_enable_disable_command_fn (vlib_main_t * vm,
                                    unformat_input_t * input,
                                    vlib_cli_command_t * cmd)
 {
-  KVS_main_t * Kmp = &KVS_main;
+  kvs_main_t * kmp = &kvs_main;
   u32 sw_if_index = ~0;
   int enable_disable = 1;
 
@@ -79,7 +79,7 @@ KVS_enable_disable_command_fn (vlib_main_t * vm,
       if (unformat (input, "disable"))
         enable_disable = 0;
       else if (unformat (input, "%U", unformat_vnet_sw_interface,
-                         Kmp->vnet_main, &sw_if_index))
+                         kmp->vnet_main, &sw_if_index))
         ;
       else
         break;
@@ -88,7 +88,7 @@ KVS_enable_disable_command_fn (vlib_main_t * vm,
   if (sw_if_index == ~0)
     return clib_error_return (0, "Please specify an interface...");
 
-  rv = KVS_enable_disable (Kmp, sw_if_index, enable_disable);
+  rv = kvs_enable_disable (kmp, sw_if_index, enable_disable);
 
   switch(rv)
     {
@@ -105,60 +105,60 @@ KVS_enable_disable_command_fn (vlib_main_t * vm,
     break;
 
   default:
-    return clib_error_return (0, "KVS_enable_disable returned %d",
+    return clib_error_return (0, "kvs_enable_disable returned %d",
                               rv);
     }
   return 0;
 }
 
 /* *INDENT-OFF* */
-VLIB_CLI_COMMAND (KVS_enable_disable_command, static) =
+VLIB_CLI_COMMAND (kvs_enable_disable_command, static) =
 {
-  .path = "KVS enable-disable",
+  .path = "kvs enable-disable",
   .short_help =
-  "KVS enable-disable <interface-name> [disable]",
-  .function = KVS_enable_disable_command_fn,
+  "kvs enable-disable <interface-name> [disable]",
+  .function = kvs_enable_disable_command_fn,
 };
 /* *INDENT-ON* */
 
 /* API message handler */
-static void vl_api_KVS_enable_disable_t_handler
-(vl_api_KVS_enable_disable_t * mp)
+static void vl_api_kvs_enable_disable_t_handler
+(vl_api_kvs_enable_disable_t * mp)
 {
-  vl_api_KVS_enable_disable_reply_t * rmp;
-  KVS_main_t * Kmp = &KVS_main;
+  vl_api_kvs_enable_disable_reply_t * rmp;
+  kvs_main_t * kmp = &kvs_main;
   int rv;
 
-  rv = KVS_enable_disable (Kmp, ntohl(mp->sw_if_index),
+  rv = kvs_enable_disable (kmp, ntohl(mp->sw_if_index),
                                       (int) (mp->enable_disable));
 
   REPLY_MACRO(VL_API_KVS_ENABLE_DISABLE_REPLY);
 }
 
 /* API definitions */
-#include <KVS/KVS.api.c>
+#include <kvs/kvs.api.c>
 
-static clib_error_t * KVS_init (vlib_main_t * vm)
+static clib_error_t * kvs_init (vlib_main_t * vm)
 {
-  KVS_main_t * Kmp = &KVS_main;
+  kvs_main_t * kmp = &kvs_main;
   clib_error_t * error = 0;
 
-  Kmp->vlib_main = vm;
-  Kmp->vnet_main = vnet_get_main();
+  kmp->vlib_main = vm;
+  kmp->vnet_main = vnet_get_main();
 
   /* Add our API messages to the global name_crc hash table */
-  Kmp->msg_id_base = setup_message_id_table ();
+  kmp->msg_id_base = setup_message_id_table ();
 
   return error;
 }
 
-VLIB_INIT_FUNCTION (KVS_init);
+VLIB_INIT_FUNCTION (kvs_init);
 
 /* *INDENT-OFF* */
-VNET_FEATURE_INIT (KVS, static) =
+VNET_FEATURE_INIT (kvs, static) =
 {
   .arc_name = "device-input",
-  .node_name = "KVS",
+  .node_name = "kvs",
   .runs_before = VNET_FEATURES ("ethernet-input"),
 };
 /* *INDENT-ON */
@@ -167,7 +167,7 @@ VNET_FEATURE_INIT (KVS, static) =
 VLIB_PLUGIN_REGISTER () =
 {
   .version = VPP_BUILD_VER,
-  .description = "KVS plugin description goes here",
+  .description = "kvs plugin description goes here",
 };
 /* *INDENT-ON* */
 

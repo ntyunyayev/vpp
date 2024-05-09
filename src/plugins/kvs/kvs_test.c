@@ -1,5 +1,5 @@
 /*
- * KVS.c - KVS vpp-api-test plug-in
+ * kvs.c - kvs vpp-api-test plug-in
  *
  * Copyright (c) <current-year> <your-organization>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,30 +20,30 @@
 #include <vppinfra/error.h>
 #include <stdbool.h>
 
-#define __plugin_msg_base KVS_test_main.msg_id_base
+#define __plugin_msg_base kvs_test_main.msg_id_base
 #include <vlibapi/vat_helper_macros.h>
 
 uword unformat_sw_if_index (unformat_input_t * input, va_list * args);
 
 /* Declare message IDs */
-#include <KVS/KVS.api_enum.h>
-#include <KVS/KVS.api_types.h>
+#include <kvs/kvs.api_enum.h>
+#include <kvs/kvs.api_types.h>
 
 typedef struct
 {
   /* API message ID base */
   u16 msg_id_base;
   vat_main_t *vat_main;
-} KVS_test_main_t;
+} kvs_test_main_t;
 
-KVS_test_main_t KVS_test_main;
+kvs_test_main_t kvs_test_main;
 
-static int api_KVS_enable_disable (vat_main_t * vam)
+static int api_kvs_enable_disable (vat_main_t * vam)
 {
   unformat_input_t * i = vam->input;
   int enable_disable = 1;
   u32 sw_if_index = ~0;
-  vl_api_KVS_enable_disable_t * mp;
+  vl_api_kvs_enable_disable_t * mp;
   int ret;
 
   /* Parse args required to build the message */
@@ -79,10 +79,10 @@ static int api_KVS_enable_disable (vat_main_t * vam)
 }
 
 /*
- * List of messages that the KVS test plugin sends,
+ * List of messages that the kvs test plugin sends,
  * and that the data plane plugin processes
  */
-#include <KVS/KVS.api_test.c>
+#include <kvs/kvs.api_test.c>
 
 /*
  * fd.io coding-style-patch-verification: ON

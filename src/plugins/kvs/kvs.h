@@ -1,6 +1,6 @@
 
 /*
- * KVS.h - skeleton vpp engine plug-in header file
+ * kvs.h - skeleton vpp engine plug-in header file
  *
  * Copyright (c) <current-year> <your-organization>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __included_KVS_h__
-#define __included_KVS_h__
+#ifndef __included_kvs_h__
+#define __included_kvs_h__
 
 #include <vnet/vnet.h>
 #include <vnet/ip/ip.h>
@@ -38,21 +38,21 @@ typedef struct {
     vlib_main_t * vlib_main;
     vnet_main_t * vnet_main;
     ethernet_main_t * ethernet_main;
-} KVS_main_t;
+} kvs_main_t;
 
-extern KVS_main_t KVS_main;
+extern kvs_main_t kvs_main;
 
-extern vlib_node_registration_t KVS_node;
-extern vlib_node_registration_t KVS_periodic_node;
+extern vlib_node_registration_t kvs_node;
+extern vlib_node_registration_t kvs_periodic_node;
 
 /* Periodic function events */
 #define KVS_EVENT1 1
 #define KVS_EVENT2 2
 #define KVS_EVENT_PERIODIC_ENABLE_DISABLE 3
 
-void KVS_create_periodic_process (KVS_main_t *);
+void kvs_create_periodic_process (kvs_main_t *);
 
-#endif /* __included_KVS_h__ */
+#endif /* __included_kvs_h__ */
 
 /*
  * fd.io coding-style-patch-verification: ON

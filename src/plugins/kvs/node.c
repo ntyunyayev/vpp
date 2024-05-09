@@ -18,48 +18,48 @@
 #include <vnet/vnet.h>
 #include <vnet/pg/pg.h>
 #include <vppinfra/error.h>
-#include <KVS/KVS.h>
+#include <kvs/kvs.h>
 
 typedef struct
 {
   u32 sw_if_index;
   u32 next_index;
-} KVS_trace_t;
+} kvs_trace_t;
 
 #ifndef CLIB_MARCH_VARIANT
 
 /* packet trace format function */
-static u8 * format_KVS_trace (u8 * s, va_list * args)
+static u8 * format_kvs_trace (u8 * s, va_list * args)
 {
   CLIB_UNUSED (vlib_main_t * vm) = va_arg (*args, vlib_main_t *);
   CLIB_UNUSED (vlib_node_t * node) = va_arg (*args, vlib_node_t *);
-  KVS_trace_t * t = va_arg (*args, KVS_trace_t *);
+  kvs_trace_t * t = va_arg (*args, kvs_trace_t *);
   
   s = format (s, "KVS: sw_if_index %d, next index %d\n",
               t->sw_if_index, t->next_index);
   return s;
 }
 
-vlib_node_registration_t KVS_node;
+vlib_node_registration_t kvs_node;
 
 #endif /* CLIB_MARCH_VARIANT */
 
-#define foreach_KVS_error \
+#define foreach_kvs_error \
 _(SWAPPED, "Mac swap packets processed")
 
 typedef enum 
 {
 #define _(sym,str) KVS_ERROR_##sym,
-  foreach_KVS_error
+  foreach_kvs_error
 #undef _
   KVS_N_ERROR,
-} KVS_error_t;
+} kvs_error_t;
 
 #ifndef CLIB_MARCH_VARIANT
-static char * KVS_error_strings[] = 
+static char * kvs_error_strings[] = 
 {
 #define _(sym,string) string,
-  foreach_KVS_error
+  foreach_kvs_error
 #undef _
 };
 #endif /* CLIB_MARCH_VARIANT */
@@ -68,10 +68,10 @@ typedef enum
 {
   KVS_NEXT_DROP,
   KVS_N_NEXT,
-} KVS_next_t;
+} kvs_next_t;
 
 always_inline uword
-KVS_inline (vlib_main_t * vm,
+kvs_inline (vlib_main_t * vm,
      		 vlib_node_runtime_t * node, vlib_frame_t * frame,
 		 int is_ip4, int is_trace)
 {
@@ -111,28 +111,28 @@ KVS_inline (vlib_main_t * vm,
 	{
 	  if (b[0]->flags & VLIB_BUFFER_IS_TRACED)
 	    {
-	      KVS_trace_t *t = 
+	      kvs_trace_t *t = 
                    vlib_add_trace (vm, node, b[0], sizeof (*t));
 	      t->next_index = next[0];
               t->sw_if_index = vnet_buffer(b[0])->sw_if_index[VLIB_RX];
 	    }
 	  if (b[1]->flags & VLIB_BUFFER_IS_TRACED)
 	    {
-	      KVS_trace_t *t = 
+	      kvs_trace_t *t = 
                     vlib_add_trace (vm, node, b[1], sizeof (*t));
 	      t->next_index = next[1];
               t->sw_if_index = vnet_buffer(b[1])->sw_if_index[VLIB_RX];
 	    }
 	  if (b[2]->flags & VLIB_BUFFER_IS_TRACED)
 	    {
-	      KVS_trace_t *t = 
+	      kvs_trace_t *t = 
                     vlib_add_trace (vm, node, b[2], sizeof (*t));
 	      t->next_index = next[2];
               t->sw_if_index = vnet_buffer(b[2])->sw_if_index[VLIB_RX];
 	    }
 	  if (b[3]->flags & VLIB_BUFFER_IS_TRACED)
 	    {
-	      KVS_trace_t *t = 
+	      kvs_trace_t *t = 
                     vlib_add_trace (vm, node, b[3], sizeof (*t));
 	      t->next_index = next[3];
               t->sw_if_index = vnet_buffer(b[3])->sw_if_index[VLIB_RX];
@@ -154,7 +154,7 @@ KVS_inline (vlib_main_t * vm,
 	{
 	  if (b[0]->flags & VLIB_BUFFER_IS_TRACED)
 	    {
-	      KVS_trace_t *t = 
+	      kvs_trace_t *t = 
                     vlib_add_trace (vm, node, b[0], sizeof (*t));
 	      t->next_index = next[0];
               t->sw_if_index = vnet_buffer(b[0])->sw_if_index[VLIB_RX];
@@ -171,28 +171,28 @@ KVS_inline (vlib_main_t * vm,
   return frame->n_vectors;
 }
 
-VLIB_NODE_FN (KVS_node) (vlib_main_t * vm, vlib_node_runtime_t * node,
+VLIB_NODE_FN (kvs_node) (vlib_main_t * vm, vlib_node_runtime_t * node,
                              vlib_frame_t * frame)
 {
   if (PREDICT_FALSE (node->flags & VLIB_NODE_FLAG_TRACE))
-    return KVS_inline (vm, node, frame, 1 /* is_ip4 */ ,
+    return kvs_inline (vm, node, frame, 1 /* is_ip4 */ ,
 			    1 /* is_trace */ );
   else
-    return KVS_inline (vm, node, frame, 1 /* is_ip4 */ ,
+    return kvs_inline (vm, node, frame, 1 /* is_ip4 */ ,
 			    0 /* is_trace */ );
 }
 
 /* *INDENT-OFF* */
 #ifndef CLIB_MARCH_VARIANT
-VLIB_REGISTER_NODE (KVS_node) = 
+VLIB_REGISTER_NODE (kvs_node) = 
 {
-  .name = "KVS",
+  .name = "kvs",
   .vector_size = sizeof (u32),
-  .format_trace = format_KVS_trace,
+  .format_trace = format_kvs_trace,
   .type = VLIB_NODE_TYPE_INTERNAL,
   
-  .n_errors = ARRAY_LEN(KVS_error_strings),
-  .error_strings = KVS_error_strings,
+  .n_errors = ARRAY_LEN(kvs_error_strings),
+  .error_strings = kvs_error_strings,
 
   .n_next_nodes = KVS_N_NEXT,
 

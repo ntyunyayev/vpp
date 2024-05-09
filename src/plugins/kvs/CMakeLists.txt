@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_vpp_plugin(KVS
+add_vpp_plugin(kvs
   SOURCES
-  KVS.c
+  kvs.c
   node.c
-  KVS_periodic.c
-  KVS.h
+  kvs_periodic.c
+  kvs.h
 
   MULTIARCH_SOURCES
   node.c
 
   API_FILES
-  KVS.api
+  kvs.api
 
   API_TEST_SOURCES
-  KVS_test.c
+  kvs_test.c
 )
